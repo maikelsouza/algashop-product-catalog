@@ -1,6 +1,6 @@
 package com.algaworks.algashop.product.catalog.presentation;
 
-import com.algaworks.algashop.product.catalog.applicatioin.ResourceNotFoundException;
+import com.algaworks.algashop.product.catalog.application.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;

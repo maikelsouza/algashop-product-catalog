@@ -1,4 +1,4 @@
-package com.algaworks.algashop.product.catalog.applicatioin.product.query;
+package com.algaworks.algashop.product.catalog.application.product.query;
 
 import java.util.UUID;
 

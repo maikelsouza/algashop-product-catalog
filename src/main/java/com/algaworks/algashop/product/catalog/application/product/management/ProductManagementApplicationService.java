@@ -1,4 +1,4 @@
-package com.algaworks.algashop.product.catalog.applicatioin.product.management;
+package com.algaworks.algashop.product.catalog.application.product.management;
 
 import org.springframework.stereotype.Service;
 

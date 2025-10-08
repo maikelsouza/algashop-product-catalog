@@ -1,7 +1,7 @@
 package com.algaworks.algashop.product.catalog.application.query.service;
 
-import com.algaworks.algashop.product.catalog.applicatioin.product.query.CategoryMinimalOutput;
-import com.algaworks.algashop.product.catalog.applicatioin.product.query.ProductDetailOutput;
+import com.algaworks.algashop.product.catalog.application.product.query.CategoryMinimalOutput;
+import com.algaworks.algashop.product.catalog.application.product.query.ProductDetailOutput;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
