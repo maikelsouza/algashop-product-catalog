@@ -21,6 +21,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 @WebMvcTest(controllers = ProductController.class)
 public class ProductBase {
 
@@ -39,6 +43,14 @@ public class ProductBase {
 
     public static final UUID createdProductId = UUID.fromString("f7c6843f-465c-476d-9a9b-4783bde4dc5e");
 
+    public static final UUID updatedProductId = UUID.fromString("a3927f81-5d33-4b0e-b2e4-3c1a7bba8d4f");
+
+    public static final UUID updatedNotFoundProductId = UUID.fromString("c7e42a19-8b54-4c92-9d2a-1f8ef83a37e6");
+
+    public static final UUID deletedNotFoundProductId = UUID.fromString("7a6f3c9b-2d8e-4f1a-b5e2-9c3d7f8a1b2e");
+
+
+
     @BeforeEach
     void setUp() {
         RestAssuredMockMvc.mockMvc(MockMvcBuilders.webAppContextSetup(context)
@@ -50,23 +62,52 @@ public class ProductBase {
         mockFilterProducts();
         mockCreateProduct();
         mockInvalidProductFindById();
+        mockUpdateProduct();
+        mockUpdateNotFoundProduct();
+        mockDeletedProduct();
+        mockDeletedNotFoundProduct();
+    }
+
+    private void mockDeletedProduct() {
+        Mockito.doNothing().when(productManagementApplicationService).disable(any(UUID.class));
+    }
+
+    private void mockDeletedNotFoundProduct(){
+
+        Mockito.doThrow(new ResourceNotFoundException())
+                .when(productManagementApplicationService)
+                .disable(eq(deletedNotFoundProductId));
     }
 
     private void mockInvalidProductFindById() {
-        Mockito.when(productQueryService.findById(invalidProductId))
+        when(productQueryService.findById(invalidProductId))
                 .thenThrow(new ResourceNotFoundException());
     }
 
     private void mockCreateProduct(){
-        Mockito.when(productManagementApplicationService.create(Mockito.any(ProductInput.class)))
+        when(productManagementApplicationService.create(any(ProductInput.class)))
                 .thenReturn(createdProductId);
 
-        Mockito.when(productQueryService.findById(createdProductId))
+        when(productQueryService.findById(createdProductId))
                 .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().inStock(false).build());
     }
 
+    private void mockUpdateProduct(){
+        Mockito.doNothing().when(productManagementApplicationService).update(any(UUID.class), any(ProductInput.class));
+
+        when(productQueryService.findById(updatedProductId))
+                .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().build());
+    }
+
+    private void mockUpdateNotFoundProduct(){
+
+        Mockito.doThrow(new ResourceNotFoundException())
+                .when(productManagementApplicationService)
+                .update(eq(updatedNotFoundProductId), any(ProductInput.class));
+    }
+
     private void mockFilterProducts() {
-        Mockito.when(productQueryService.filter(
+        when(productQueryService.filter(
                 Mockito.anyInt(), Mockito.anyInt()))
                 .then((answer) -> {
                     Integer size = answer.getArgument(0);
@@ -81,12 +122,11 @@ public class ProductBase {
                                          ProductDetailOutputTestDataBuilder.aProductAlt1().build()
                                     )
                             ).build();
-
         });
     }
 
     private void mockValidProductFindById() {
-        Mockito.when(productQueryService.findById(validProductId))
+        when(productQueryService.findById(validProductId))
                 .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().id(validProductId).build());
     }
 
