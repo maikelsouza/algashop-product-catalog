@@ -17,7 +17,7 @@ Contract.make {
         response {
             status(200)
             headers {
-                contentType: "application/json"
+                contentType "application/json"
             }
             body([
                 size: fromRequest().query("size"),
