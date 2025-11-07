@@ -1,4 +1,4 @@
-package com.algaworks.algashop.product.catalog.infrastrure.locale;
+package com.algaworks.algashop.product.catalog.infrastructure.locale;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
