@@ -1,11 +1,11 @@
 package com.algaworks.algashop.product.catalog.contract.base;
 
+import com.algaworks.algashop.product.catalog.application.PageModel;
 import com.algaworks.algashop.product.catalog.application.ResourceNotFoundException;
 import com.algaworks.algashop.product.catalog.application.category.management.CategoryInput;
 import com.algaworks.algashop.product.catalog.application.category.management.CategoryManagementApplicationService;
 import com.algaworks.algashop.product.catalog.application.category.query.CategoryDetailOutput;
 import com.algaworks.algashop.product.catalog.application.category.query.CategoryQueryService;
-import com.algaworks.algashop.product.catalog.application.product.query.PageModel;
 import com.algaworks.algashop.product.catalog.application.query.service.CategoryDetailOutputTestDataBuilder;
 import com.algaworks.algashop.product.catalog.presentation.CategoryController;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
