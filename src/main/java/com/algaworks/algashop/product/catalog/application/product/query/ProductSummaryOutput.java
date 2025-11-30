@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProductSumaryOutput {
+public class ProductSummaryOutput {
 
     private UUID id;
 
