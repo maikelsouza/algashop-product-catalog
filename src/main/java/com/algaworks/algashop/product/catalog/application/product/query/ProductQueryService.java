@@ -8,5 +8,5 @@ public interface ProductQueryService {
 
     ProductDetailOutput findById(UUID productId);
 
-    PageModel<ProductDetailOutput> filter(Integer size, Integer number);
+    PageModel<ProductSumaryOutput> filter(Integer size, Integer number);
 }

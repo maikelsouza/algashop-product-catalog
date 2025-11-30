@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProductDetailOutput  {
+public class ProductSumaryOutput {
 
     private UUID id;
 
@@ -34,7 +34,7 @@ public class ProductDetailOutput  {
 
     private CategoryMinimalOutput category;
 
-    private String description;
+    private String shortDescription;
 
     private String slug;
 
@@ -44,6 +44,6 @@ public class ProductDetailOutput  {
 
     private Integer discountPercentageRounded;
 
-
+    
 
 }
