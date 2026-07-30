@@ -120,7 +120,7 @@ public class ProductBase {
 
     private void mockFilterProducts() {
         when(productQueryService.filter(
-                Mockito.anyInt(), Mockito.anyInt()))
+                Mockito.any()))
                 .then((answer) -> {
                     Integer size = answer.getArgument(0);
                     return PageModel.<ProductDetailOutput> builder()
