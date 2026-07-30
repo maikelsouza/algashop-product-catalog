@@ -43,8 +43,8 @@ public class ProductController {
 
     @GetMapping
     public PageModel<ProductSummaryOutput> filter(@RequestParam(name = "size", required = false) Integer size,
-                                                  @RequestParam(name = "number", required = false) Integer number){
-        return productQueryService.filter(size, number);
+                                                  @RequestParam(name = "page", required = false) Integer page){
+        return productQueryService.filter(size, page);
     }
 
     @PutMapping("/{productId}")
