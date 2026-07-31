@@ -16,7 +16,7 @@ public class ProductFilter extends SortablePageFilter<ProductFilter.SortType> {
 
     private String term;
 
-    private Boolean hasDiscont;
+    private Boolean hasDiscount;
 
     private Boolean enabled;
 

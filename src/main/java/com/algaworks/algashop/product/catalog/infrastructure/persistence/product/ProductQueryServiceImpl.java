@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.aggregation.AggregationExpressionCriteria;
+import org.springframework.data.mongodb.core.aggregation.ComparisonOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -100,6 +102,20 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 query.addCriteria(Criteria.where("salePrice").lte(filter.getPriceTo()));
             }
         }
-            return query;
+
+        if (filter.getHasDiscount() != null) {
+            if (filter.getHasDiscount()) {
+                query.addCriteria(AggregationExpressionCriteria.whereExpr(
+                        ComparisonOperators.valueOf("$salePrice")
+                                .lessThan("$regularPrice")
+                ));
+            } else {
+                query.addCriteria(AggregationExpressionCriteria.whereExpr(
+                        ComparisonOperators.valueOf("$salePrice")
+                                .equalTo("$regularPrice")
+                ));
+            }
+        }
+        return query;
     }
 }
