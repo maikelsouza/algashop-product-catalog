@@ -4,6 +4,7 @@ import com.algaworks.algashop.product.catalog.application.PageModel;
 import com.algaworks.algashop.product.catalog.application.category.management.CategoryInput;
 import com.algaworks.algashop.product.catalog.application.category.management.CategoryManagementApplicationService;
 import com.algaworks.algashop.product.catalog.application.category.query.CategoryDetailOutput;
+import com.algaworks.algashop.product.catalog.application.category.query.CategoryFilter;
 import com.algaworks.algashop.product.catalog.application.category.query.CategoryQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,8 @@ public class CategoryController {
     private final CategoryQueryService categoryQueryService;
 
     @GetMapping
-    public PageModel<CategoryDetailOutput> filter(@RequestParam(name = "size", required = false) Integer size,
-                                                  @RequestParam(name = "page", required = false) Integer page){
-        return categoryQueryService.filter(size, page);
+    public PageModel<CategoryDetailOutput> filter(CategoryFilter categoryFilter){
+        return categoryQueryService.filter(categoryFilter);
     }
 
     @PostMapping

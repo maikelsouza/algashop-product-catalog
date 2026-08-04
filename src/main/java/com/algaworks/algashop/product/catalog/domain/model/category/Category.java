@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.annotation.*;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.OffsetDateTime;
@@ -23,6 +24,7 @@ public class Category {
     @EqualsAndHashCode.Include
     private UUID id;
 
+    @TextIndexed()
     private String name;
 
     private Boolean enabled;
