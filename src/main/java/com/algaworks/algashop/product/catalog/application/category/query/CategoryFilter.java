@@ -14,21 +14,19 @@ public class CategoryFilter extends SortablePageFilter<CategoryFilter.SortType> 
 
     private Boolean enabled;
 
-
     @Override
     public CategoryFilter.SortType getSortByPropertyOrDefault() {
-        return CategoryFilter.SortType.NAME;
+        return getSortByProperty() == null ? CategoryFilter.SortType.NAME: getSortByProperty();
     }
 
     @Override
     public Sort.Direction getSortDirectionOrDefault() {
-        return Sort.Direction.ASC;
+        return getSortDirection() == null ? Sort.Direction.ASC : getSortDirection();
     }
 
     @Getter
     @RequiredArgsConstructor
     public enum SortType{
-
         NAME("name");
 
         private final String propertyName;

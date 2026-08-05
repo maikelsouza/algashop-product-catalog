@@ -1,4 +1,4 @@
-package com.algaworks.algashop.product.catalog.infrastructure.persistence.catetory;
+package com.algaworks.algashop.product.catalog.infrastructure.persistence.category;
 
 import com.algaworks.algashop.product.catalog.application.PageModel;
 import com.algaworks.algashop.product.catalog.application.category.query.CategoryDetailOutput;
@@ -15,7 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -77,7 +76,7 @@ public class CategoryQueryServiceImpl implements CategoryQueryService {
         }
 
         if (StringUtils.isNotBlank(filter.getName())){
-            query.addCriteria(TextCriteria.forDefaultLanguage().matching(filter.getName()));
+            query.addCriteria(Criteria.where("name").regex(filter.getName().trim(), "i"));
         }
         return query;
     }
