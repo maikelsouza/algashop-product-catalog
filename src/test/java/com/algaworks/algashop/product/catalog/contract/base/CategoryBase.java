@@ -79,7 +79,7 @@ public class CategoryBase {
 
     private void mockFilterCategories() {
         when(categoryQueryService.filter(
-                        Mockito.anyInt(), Mockito.anyInt()))
+                        Mockito.any()))
                 .then((answer) -> {
                     Integer size = answer.getArgument(0);
                     return PageModel.<CategoryDetailOutput> builder()
