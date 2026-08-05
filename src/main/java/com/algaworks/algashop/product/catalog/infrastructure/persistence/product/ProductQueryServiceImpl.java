@@ -11,20 +11,20 @@ import com.algaworks.algashop.product.catalog.domain.model.product.ProductNotFou
 import com.algaworks.algashop.product.catalog.domain.model.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.aggregation.AggregationExpressionCriteria;
-import org.springframework.data.mongodb.core.aggregation.ComparisonOperators;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
+
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Service
 @RequiredArgsConstructor
@@ -48,31 +48,82 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
     @Override
     public PageModel<ProductSummaryOutput> filter(ProductFilter filter) {
-        Query query = queryWith(filter);
-        long totalItens = mongoOperations.count(query, Product.class);
-        Sort sort = sortWith(filter);
-        PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize(), sort);
-        Query pageQuery = query.with(pageRequest);
-        List<Product> products;
-        int totalPages = 0;
-        if(totalItens > 0){
-            products = mongoOperations.find(pageQuery, Product.class);
-            totalPages = (int) Math.ceil((double) totalItens / pageRequest.getPageSize());
-        } else {
-            products = new ArrayList<>();
+        Optional<Criteria> criteria = buildCriteria(filter);
+        Optional<TextCriteria> textCriteria = buildTextCriteria(filter);
+
+        Query query = new Query();
+        textCriteria.ifPresent(query::addCriteria);
+        criteria.ifPresent(query::addCriteria);
+
+        long totalElements = mongoOperations.count(query, Product.class);
+        if (totalElements == 0L) {
+            return PageModel.<ProductSummaryOutput>builder()
+                    .number(0)
+                    .size(0)
+                    .totalElements(0)
+                    .totalPages(0)
+                    .build();
         }
-        List<ProductSummaryOutput> summaryOutputs = products.stream()
-                .map(p -> mapper.convert(p, ProductSummaryOutput.class))
-                .collect(Collectors.toList());
+
+        List<AggregationOperation> operations = new ArrayList<>();
+
+        textCriteria.ifPresent(tc -> {
+                operations.add(match(tc));
+                AggregationOperation addTextScoreField = context ->
+                     new Document("$addFields", new Document("score", new Document("$meta", "textScore")));
+                    operations.add(addTextScoreField);
+
+        });
+
+        criteria.ifPresent(c -> operations.add(match(c)));
+
+        PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
+        operations.addAll(Arrays.asList(
+                lookup("categories", "categoryId", "_id", "category"),
+                unwind("$category"),
+                sort(sortWith(filter)),
+                projectionForSummary(),
+                skip(pageRequest.getOffset()),
+                limit(filter.getSize())
+
+        ));
+        Aggregation aggregation = newAggregation(operations);
+
+        List<ProductSummaryOutput> productSummaryOutputs = mongoOperations
+                .aggregate(aggregation, Product.class, ProductSummaryOutput.class)
+                .getMappedResults();
+
+        int totalPages = (int) Math.ceil((double) totalElements / (double) filter.getSize());
 
         return PageModel.<ProductSummaryOutput>builder()
-                .content(summaryOutputs)
-                .number(pageRequest.getPageNumber())
-                .size(pageRequest.getPageSize())
-                .totalElements(totalItens)
+                .content(productSummaryOutputs)
+                .number(filter.getPage())
+                .size(filter.getSize())
+                .totalElements(totalElements)
                 .totalPages(totalPages)
                 .build();
     }
+
+    private ProjectionOperation projectionForSummary() {
+        return project()
+                .and("_id").as("_id")
+                .and("addedAt").as("addedAt")
+                .and("name").as("name")
+                .and("brand").as("brand")
+                .and("regularPrice").as("regularPrice")
+                .and("salePrice").as("salePrice")
+                .and("enabled").as("enabled")
+                .and("quantityInStock").as("quantityInStock")
+                .and("discountPercentageRounded").as("discountPercentageRounded")
+                .and("score").as("score")
+                .and("category._id").as("category._id")
+                .and("category.name").as("category.name")
+                .and("score").as("score")
+                .andExpression("salePrice < regularPrice").as("hasDiscount")
+                .andExpression("quantityInStock > 0").as("inStock")
+                .and(StringOperators.Substr.valueOf("$description").substring(0, 50)).as("shortDescription");
+    }
+
 
     private Sort sortWith(ProductFilter filter) {
         if (StringUtils.isNotBlank(filter.getTerm())){
@@ -81,44 +132,45 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         return Sort.by(filter.getSortDirectionOrDefault(), filter.getSortByPropertyOrDefault().getPropertyName());
     }
 
-    private Query queryWith(ProductFilter filter) {
-        Query query = new Query();
+    private Optional<Criteria> buildCriteria(ProductFilter filter) {
+
+        List<CriteriaDefinition> criterias = new ArrayList<>();
         if (filter.getEnabled() != null){
-            query.addCriteria(Criteria.where("enabled").is(filter.getEnabled()));
+            criterias.add(Criteria.where("enabled").is(filter.getEnabled()));
         }
 
         if (filter.getAddedAtFrom() != null && filter.getAddedAtTo() != null){
-            query.addCriteria(Criteria.where("addedAt")
+            criterias.add(Criteria.where("addedAt")
                     .gte(filter.getAddedAtFrom())
                     .lte(filter.getAddedAtTo()));
         }else{
             if (filter.getAddedAtFrom() != null){
-                query.addCriteria(Criteria.where("addedAt").gte(filter.getAddedAtFrom()));
+                criterias.add(Criteria.where("addedAt").gte(filter.getAddedAtFrom()));
             }else if (filter.getAddedAtTo() != null){
-                query.addCriteria(Criteria.where("addedAt").lte(filter.getAddedAtTo()));
+                criterias.add(Criteria.where("addedAt").lte(filter.getAddedAtTo()));
             }
         }
 
         if(filter.getPriceFrom() != null && filter.getPriceTo() != null){
-            query.addCriteria(Criteria.where("salePrice")
+            criterias.add(Criteria.where("salePrice")
                     .gte(filter.getPriceFrom())
                     .lte(filter.getPriceTo()));
         }else {
             if (filter.getPriceFrom() != null) {
-                query.addCriteria(Criteria.where("salePrice").gte(filter.getPriceFrom()));
+                criterias.add(Criteria.where("salePrice").gte(filter.getPriceFrom()));
             } else if (filter.getPriceTo() != null) {
-                query.addCriteria(Criteria.where("salePrice").lte(filter.getPriceTo()));
+                criterias.add(Criteria.where("salePrice").lte(filter.getPriceTo()));
             }
         }
 
         if (filter.getHasDiscount() != null) {
             if (filter.getHasDiscount()) {
-                query.addCriteria(AggregationExpressionCriteria.whereExpr(
+                criterias.add(AggregationExpressionCriteria.whereExpr(
                         ComparisonOperators.valueOf("$salePrice")
                                 .lessThan("$regularPrice")
                 ));
             } else {
-                query.addCriteria(AggregationExpressionCriteria.whereExpr(
+                criterias.add(AggregationExpressionCriteria.whereExpr(
                         ComparisonOperators.valueOf("$salePrice")
                                 .equalTo("$regularPrice")
                 ));
@@ -126,21 +178,31 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         if (filter.getInStock() != null){
             if(filter.getInStock()){
-                query.addCriteria(Criteria.where("quantityInStock").gt(0));
+                criterias.add(Criteria.where("quantityInStock").gt(0));
             }else{
-                query.addCriteria(Criteria.where("quantityInStock").is(0));
+                criterias.add(Criteria.where("quantityInStock").is(0));
             }
         }
 
         if(filter.getCategoriesId() != null && filter.getCategoriesId().length > 0){
-            query.addCriteria(Criteria.where("categoryId").in(
+            criterias.add(Criteria.where("categoryId").in(
                     (Object[]) filter.getCategoriesId()
             ));
         }
 
-        if (StringUtils.isNotBlank(filter.getTerm())){
-            query.addCriteria(TextCriteria.forDefaultLanguage().matching(filter.getTerm()));
+        if (criterias.isEmpty()){
+            return Optional.empty();
         }
-        return query;
+
+        return Optional.of(
+                new Criteria().andOperator(criterias.toArray(new Criteria[0]))
+        );
+    }
+
+    private Optional<TextCriteria> buildTextCriteria(ProductFilter filter) {
+        if (StringUtils.isNotBlank(filter.getTerm())) {
+            return Optional.of(TextCriteria.forDefaultLanguage().matching(filter.getTerm()));
+        }
+        return Optional.empty();
     }
 }
