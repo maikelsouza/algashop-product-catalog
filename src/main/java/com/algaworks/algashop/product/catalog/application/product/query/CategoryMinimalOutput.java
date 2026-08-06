@@ -1,5 +1,6 @@
 package com.algaworks.algashop.product.catalog.application.product.query;
 
+import com.algaworks.algashop.product.catalog.infrastructure.utility.Slugfier;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +17,11 @@ public class CategoryMinimalOutput {
     private UUID id;
 
     private String name;
+
+    private Boolean enabled;
+
+    public String getSlug() {
+        return Slugfier.slugify(this.getName());
+    }
 
 }

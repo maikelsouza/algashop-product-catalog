@@ -79,8 +79,6 @@ public class ProductQueryServiceImpl implements ProductQueryService {
 
         PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
         operations.addAll(Arrays.asList(
-                lookup("categories", "categoryId", "_id", "category"),
-                unwind("$category"),
                 sort(sortWith(filter)),
                 projectionForSummary(),
                 skip(pageRequest.getOffset()),
@@ -118,7 +116,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 .and("score").as("score")
                 .and("category._id").as("category._id")
                 .and("category.name").as("category.name")
-                .and("score").as("score")
+                .and("category.enabled").as("category.enabled")
                 .andExpression("salePrice < regularPrice").as("hasDiscount")
                 .andExpression("quantityInStock > 0").as("inStock")
                 .and(StringOperators.Substr.valueOf("$description").substring(0, 50)).as("shortDescription");
@@ -185,7 +183,7 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
 
         if(filter.getCategoriesId() != null && filter.getCategoriesId().length > 0){
-            criterias.add(Criteria.where("categoryId").in(
+            criterias.add(Criteria.where("category.id").in(
                     (Object[]) filter.getCategoriesId()
             ));
         }
