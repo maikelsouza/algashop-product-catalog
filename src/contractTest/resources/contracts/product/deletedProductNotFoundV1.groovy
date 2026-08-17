@@ -6,10 +6,7 @@ Contract.make {
 
     request {
         method DELETE()
-        headers {
-            accept 'application/json'
-        }
-        url("/api/v1/products/7a6f3c9b-2d8e-4f1a-b5e2-9c3d7f8a1b2e")
+        url("/api/v1/products/7a6f3c9b-2d8e-4f1a-b5e2-9c3d7f8a1b2e/enable")
     }
 
     response {
