@@ -15,7 +15,7 @@ public class StockService {
 
     private final DomainEventPublisher domainEventPublisher;
 
-    public void restock(Product product, int quantity) {
+    public StockMovement restock(Product product, int quantity) {
         Objects.requireNonNull(product);
         if (quantity <= 0) {
             throw new IllegalArgumentException();
@@ -30,9 +30,17 @@ public class StockService {
         if(result.isRestocked()) {
             domainEventPublisher.publish(ProductRestockedEvent.builder().productId(product.getId()).build());
         }
+
+        return StockMovement.builder()
+                .productId(product.getId())
+                .movementQuantity(quantity)
+                .previousQuantity(result.previousQuantity())
+                .newQuantity(result.newQuantity())
+                .type(StockMovement.MovementType.STOCK_IN)
+                .build();
     }
 
-    public void withdraw(Product product, int quantity) {
+    public StockMovement withdraw(Product product, int quantity) {
         Objects.requireNonNull(product);
         if (quantity < 1) {
             throw new IllegalArgumentException();
@@ -48,5 +56,13 @@ public class StockService {
         if(result.isOutOfStock()) {
             domainEventPublisher.publish(ProductSoldOutEvent.builder().productId(product.getId()).build());
         }
+
+        return StockMovement.builder()
+                .productId(product.getId())
+                .movementQuantity(quantity)
+                .previousQuantity(result.previousQuantity())
+                .newQuantity(result.newQuantity())
+                .type(StockMovement.MovementType.STOCK_OUT)
+                .build();
     }
 }
