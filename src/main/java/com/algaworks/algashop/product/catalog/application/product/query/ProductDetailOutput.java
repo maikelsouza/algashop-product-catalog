@@ -44,6 +44,10 @@ public class ProductDetailOutput  {
 
     private Integer discountPercentageRounded;
 
+    private Long version;
+
+    private OffsetDateTime updatedAt;
+
 
 
 }
