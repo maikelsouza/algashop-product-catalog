@@ -1,11 +1,14 @@
 package com.algaworks.algashop.product.catalog.application.product.management;
 
+import com.algaworks.algashop.product.catalog.application.product.query.ProductDetailOutput;
+import com.algaworks.algashop.product.catalog.application.utility.Mapper;
 import com.algaworks.algashop.product.catalog.domain.model.category.Category;
 import com.algaworks.algashop.product.catalog.domain.model.category.CategoryNotFoundException;
 import com.algaworks.algashop.product.catalog.domain.model.category.CategoryRepository;
 import com.algaworks.algashop.product.catalog.domain.model.product.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,19 +26,26 @@ public class ProductManagementApplicationService {
 
     private final StockService stockService;
 
+    private final Mapper mapper;
 
-    public UUID create(ProductInput input){
+
+    @CachePut(cacheNames = "algashop:products:v1", key = "#result.id",
+            condition = "#input.enabled == true")
+    public ProductDetailOutput create(ProductInput input){
         Product product = mapToProduct(input);
         productRepository.save(product);
-        return product.getId();
+        return mapper.convert(product, ProductDetailOutput.class);
     }
 
-    public void update(UUID productId, ProductInput input){
+    @CachePut(cacheNames = "algashop:products:v1", key = "#result.id",
+            condition = "#input.enabled == true")
+    public ProductDetailOutput update(UUID productId, ProductInput input){
         Product product = findProduct(productId);
         Category category = findCategory(input.getCategoryId());
         updateProduct(product, input);
         product.setCategory(category);
         productRepository.save(product);
+        return mapper.convert(product, ProductDetailOutput.class);
     }
 
     public void disable(UUID productId){
