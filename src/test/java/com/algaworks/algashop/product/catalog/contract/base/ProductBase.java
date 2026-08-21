@@ -98,11 +98,13 @@ public class ProductBase {
     }
 
     private void mockCreateProduct(){
-        when(productManagementApplicationService.create(any(ProductInput.class)))
-                .thenReturn(createdProductId);
+        ProductDetailOutput productDetailOutput = ProductDetailOutputTestDataBuilder.aProduct()
+                .id(createdProductId).inStock(false).build();
+        Mockito.when(productManagementApplicationService.create(Mockito.any(ProductInput.class)))
+                .thenReturn(productDetailOutput);
 
-        when(productQueryService.findById(createdProductId))
-                .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().inStock(false).build());
+        Mockito.when(productQueryService.findById(createdProductId))
+                .thenReturn(productDetailOutput);
     }
 
     private void mockUpdateProduct(){
