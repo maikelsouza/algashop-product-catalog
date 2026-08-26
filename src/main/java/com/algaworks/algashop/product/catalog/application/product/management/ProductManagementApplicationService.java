@@ -32,7 +32,7 @@ public class ProductManagementApplicationService {
 
     @CachePut(cacheNames = "algashop:products:v1", key = "#result.id",
             condition = "#input.enabled == true")
-    public ProductDetailOutput create(ProductInput input){
+    public ProductDetailOutput create(ProductInput input) {
         Product product = mapToProduct(input);
         productRepository.save(product);
         return mapper.convert(product, ProductDetailOutput.class);

@@ -9,7 +9,7 @@ Contract.make {
             accept "application/json"
             contentType 'application/json'
         }
-        urlPath("/api/v1/products/21651a12-b126-4213-ac21-19f66ff4642e") {
+        urlPath("/api/v1/products/c7e42a19-8b54-4c92-9d2a-1f8ef83a37e6") {
             body([
                     name: value(
                             test("Notebook X11"),

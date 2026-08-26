@@ -2,6 +2,7 @@ package com.algaworks.algashop.product.catalog.application.query.service;
 
 import com.algaworks.algashop.product.catalog.application.category.query.CategoryDetailOutput;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public class CategoryDetailOutputTestDataBuilder {
@@ -12,6 +13,7 @@ public class CategoryDetailOutputTestDataBuilder {
         return CategoryDetailOutput.builder()
                 .id(UUID.randomUUID())
                 .name("Notebook")
+                .updatedAt(OffsetDateTime.now())
                 .enabled(true);
     }
 
@@ -19,6 +21,7 @@ public class CategoryDetailOutputTestDataBuilder {
         return CategoryDetailOutput.builder()
                 .id(UUID.randomUUID())
                 .name("Desktop")
+                .updatedAt(OffsetDateTime.now())
                 .enabled(true);
     }
 }

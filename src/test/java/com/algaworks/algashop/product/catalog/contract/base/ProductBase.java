@@ -79,6 +79,7 @@ public class ProductBase {
         mockUpdateNotFoundProduct();
         mockDeletedProduct();
         mockDeletedNotFoundProduct();
+        mockValidProductUpdate();
     }
 
     private void mockDeletedProduct() {
@@ -98,17 +99,17 @@ public class ProductBase {
     }
 
     private void mockCreateProduct(){
-        ProductDetailOutput productDetailOutput = ProductDetailOutputTestDataBuilder.aProduct()
-                .id(createdProductId).inStock(false).build();
+        ProductDetailOutput productDetailOutput = ProductDetailOutputTestDataBuilder.aProduct().id(createdProductId).inStock(false).build();
         Mockito.when(productManagementApplicationService.create(Mockito.any(ProductInput.class)))
                 .thenReturn(productDetailOutput);
-
         Mockito.when(productQueryService.findById(createdProductId))
                 .thenReturn(productDetailOutput);
+
     }
 
     private void mockUpdateProduct(){
-        Mockito.doNothing().when(productManagementApplicationService).update(any(UUID.class), any(ProductInput.class));
+        Mockito.when(productManagementApplicationService.update(any(UUID.class), any(ProductInput.class)))
+                .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().id(updatedProductId).build());
 
         when(productQueryService.findById(updatedProductId))
                 .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().build());
@@ -133,15 +134,20 @@ public class ProductBase {
                             .totalElements(2)
                             .content(
                                     List.of(
-                                         ProductDetailOutputTestDataBuilder.aProduct().build(),
-                                         ProductDetailOutputTestDataBuilder.aProductAlt1().build()
+                                            ProductDetailOutputTestDataBuilder.aProduct().build(),
+                                            ProductDetailOutputTestDataBuilder.aProductAlt1().build()
                                     )
                             ).build();
-        });
+                });
     }
 
     private void mockValidProductFindById() {
         when(productQueryService.findById(validProductId))
+                .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().id(validProductId).build());
+    }
+
+    private void mockValidProductUpdate() {
+        Mockito.when(productManagementApplicationService.update(eq(validProductId), Mockito.any(ProductInput.class)))
                 .thenReturn(ProductDetailOutputTestDataBuilder.aProduct().id(validProductId).build());
     }
 
