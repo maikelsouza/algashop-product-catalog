@@ -15,7 +15,10 @@ import org.bson.Document;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationExpressionCriteria;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.ComparisonOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
@@ -80,35 +83,29 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize());
         operations.addAll(Arrays.asList(
                 sort(sortWith(filter)),
-                projectionForSummary(),
                 skip(pageRequest.getOffset()),
                 limit(filter.getSize())
 
         ));
         Aggregation aggregation = newAggregation(operations);
 
-        List<ProductSummaryOutput> productSummaryOutputs = mongoOperations
-                .aggregate(aggregation, Product.class, ProductSummaryOutput.class)
+        List<Product> products = mongoOperations
+                .aggregate(aggregation, Product.class, Product.class)
                 .getMappedResults();
+
+        List<ProductSummaryOutput> productSummaryOutputs = products.stream()
+                .map(p -> mapper.convert(p, ProductSummaryOutput.class)).toList();
 
         int totalPages = (int) Math.ceil((double) totalElements / (double) filter.getSize());
 
         return PageModel.<ProductSummaryOutput>builder()
-                .content(productSummaryOutputs)
+                .content(productSummaryOutputs )
                 .number(filter.getPage())
                 .size(filter.getSize())
                 .totalElements(totalElements)
                 .totalPages(totalPages)
                 .build();
     }
-
-    private ProjectionOperation projectionForSummary() {
-        return project(ProductDetailOutput.class)
-                .andExpression("salePrice < regularPrice").as("hasDiscount")
-                .andExpression("quantityInStock > 0").as("inStock")
-                .and(StringOperators.Substr.valueOf("$description").substring(0, 50)).as("shortDescription");
-    }
-
 
     private Sort sortWith(ProductFilter filter) {
         if (StringUtils.isNotBlank(filter.getTerm())){
