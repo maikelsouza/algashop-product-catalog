@@ -49,6 +49,7 @@ public class ProductDetailOutput implements Serializable {
 
     private OffsetDateTime updatedAt;
 
+    private ImageOutput mainImage;
 
 
 }
